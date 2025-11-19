@@ -1,0 +1,5 @@
+{
+  "name": "Driver Rescue Dashboard",
+  "description": "A dashboard to analyze delivery driver itineraries, calculate remaining workload against shift deadlines, and identify drivers needing rescue.",
+  "requestFramePermissions": []
+}
