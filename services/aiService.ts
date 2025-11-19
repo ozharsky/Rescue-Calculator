@@ -1,17 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { DriverCalculated, SummaryData } from "../types";
 
-// Initialize Gemini
-// Note: In a production app, backend proxies are preferred to hide API keys.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const generateRescuePlan = async (
+    apiKey: string,
     needingRescue: DriverCalculated[],
     onPace: DriverCalculated[],
     summary: SummaryData,
     hoursRemaining: number
 ): Promise<string> => {
     
+    if (!apiKey) {
+        throw new Error("API Key is missing. Please set it in the settings.");
+    }
+
+    // Initialize Gemini with the provided key at runtime
+    const ai = new GoogleGenAI({ apiKey });
     const model = "gemini-2.5-flash";
     
     // Prepare a concise context payload
@@ -55,6 +58,6 @@ export const generateRescuePlan = async (
         return response.text || "AI could not generate a plan.";
     } catch (error) {
         console.error("AI Generation Error:", error);
-        return "Error generating AI plan. Please check your API Key configuration.";
+        return "Error generating AI plan. Please check your API Key in settings.";
     }
 };

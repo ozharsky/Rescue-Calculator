@@ -1,11 +1,11 @@
-
-import React, { useState, useMemo, useCallback } from 'react';
-import { Truck, LayoutDashboard, Sparkles, Bot } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Truck, LayoutDashboard, Sparkles, Bot, Settings as SettingsIcon } from 'lucide-react';
 import { ConfigPanel } from './components/ConfigPanel';
 import { FileUpload } from './components/FileUpload';
 import { SummaryStats } from './components/SummaryStats';
 import { DriverList } from './components/DriverList';
 import { ResultsChart } from './components/ResultsChart';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { calculateDriverStats } from './services/calculationService';
 import { generateRescuePlan } from './services/aiService';
 import { CalculationParams } from './types';
@@ -17,6 +17,8 @@ const App: React.FC = () => {
   // AI State
   const [aiLoading, setAiLoading] = useState(false);
   const [aiPlan, setAiPlan] = useState<string | null>(null);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showSettings, setShowSettings] = useState(false);
   
   // Configuration State
   const [params, setParams] = useState<CalculationParams>({
@@ -26,6 +28,17 @@ const App: React.FC = () => {
     useIndividualPace: false,
     smartAdjustment: true, // Default to smart mode
   });
+
+  // Load key on mount
+  useEffect(() => {
+    const storedKey = localStorage.getItem('gemini_api_key');
+    if (storedKey) setApiKey(storedKey);
+  }, []);
+
+  const handleSaveKey = (key: string) => {
+      localStorage.setItem('gemini_api_key', key);
+      setApiKey(key);
+  };
 
   const handleDataLoaded = useCallback((data: any[][], name: string) => {
     setRawData(data);
@@ -57,9 +70,15 @@ const App: React.FC = () => {
   const handleGenerateAiPlan = async () => {
     if (!summary || !meta) return;
     
+    if (!apiKey) {
+        setShowSettings(true);
+        return;
+    }
+    
     setAiLoading(true);
     try {
       const plan = await generateRescuePlan(
+        apiKey,
         driversNeedingRescue, 
         driversOnPace, 
         summary, 
@@ -67,7 +86,7 @@ const App: React.FC = () => {
       );
       setAiPlan(plan);
     } catch (e) {
-      setAiPlan("Could not contact AI service.");
+      setAiPlan("Could not contact AI service. Please check your API Key.");
     } finally {
       setAiLoading(false);
     }
@@ -77,16 +96,31 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center space-x-3">
-          <div className="bg-indigo-600 p-2 rounded-lg shadow-md">
-            <Truck className="h-6 w-6 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-indigo-600 p-2 rounded-lg shadow-md">
+                <Truck className="h-6 w-6 text-white" />
+            </div>
+            <div>
+                <h1 className="text-xl font-bold text-gray-900">Driver Rescue Dashboard</h1>
+                <p className="text-xs text-gray-500">Logistics & Delivery Analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Driver Rescue Dashboard</h1>
-            <p className="text-xs text-gray-500">Logistics & Delivery Analysis</p>
-          </div>
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-2 text-gray-400 hover:text-indigo-600 transition-colors rounded-full hover:bg-gray-100"
+            title="Settings"
+          >
+            <SettingsIcon className="w-6 h-6" />
+          </button>
         </div>
       </header>
+
+      <ApiKeyModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+        onSave={handleSaveKey} 
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
         
