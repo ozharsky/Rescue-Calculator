@@ -651,20 +651,20 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     4. Tone: Professional, constructive, serious but supportive.
     5. Format: Text message suitable for SMS/Chime. Keep it under 100 words.
     6. If perfect, give high praise and mention their contribution to the team's bonus potential.
-    `;try{return(await n.models.generateContent({model:i,contents:o})).text||"Could not generate message."}catch(l){return console.error("AI Coaching Error:",l),"Error generating message. Check API Key."}},s5e=async(t,e,r,n)=>{if(!t)throw new Error("API Key missing");const i=new XS({apiKey:t}),a="gemini-2.5-flash",s={today:e?{driverCount:e.totalDrivers,totalLoad:"Unknown (check dashboard)"}:"Data not loaded yet",yesterday:r?{date:new Date(r.date).toLocaleDateString(),rescuesPerformed:r.summary.totalRescueNeeded,stopsRescued:r.summary.totalStopsToRescue,topHelpers:r.drivers.filter(l=>Number(l.stopsRescuedByDriver)>0).sort((l,c)=>Number(c.stopsRescuedByDriver)-Number(l.stopsRescuedByDriver)).slice(0,3).map(l=>`${l.name} (${l.stopsRescuedByDriver} stops)`)}:"No data for yesterday",scorecard:n?{week:n.week,tier:n.overallTier,score:n.overallScore,focusAreas:n.keyFocusAreas}:"No scorecard loaded"},o=`
+    `;try{return(await n.models.generateContent({model:i,contents:o})).text||"Could not generate message."}catch(l){return console.error("AI Coaching Error:",l),"Error generating message. Check API Key."}},s5e=async(t,e,r,n)=>{if(!t)throw new Error("API Key missing");const i=new XS({apiKey:t}),a="gemini-2.5-flash";let s=0,o=0;r!=null&&r.detailedRescueLogs?Object.values(r.detailedRescueLogs).forEach(u=>{s+=u.length,o+=u.reduce((f,d)=>f+d.stopsRemoved,0)}):r&&(s=r.drivers.filter(u=>Number(u.stopsRescuedFromDriver)>0).length,o=r.drivers.reduce((u,f)=>u+Number(f.stopsRescuedFromDriver||0),0));const l={today:e?{driverCount:e.totalDrivers}:"Data not loaded yet",yesterday:r?{date:new Date(r.date).toLocaleDateString(),rescuesPerformed:s,stopsRescued:o,topHelpers:r.drivers.filter(u=>Number(u.stopsRescuedByDriver)>0).sort((u,f)=>Number(f.stopsRescuedByDriver)-Number(u.stopsRescuedByDriver)).slice(0,3).map(u=>`${u.name} (${u.stopsRescuedByDriver} stops)`)}:"No data for yesterday",scorecard:n?{week:n.week,tier:n.overallTier,score:n.overallScore,focusAreas:n.keyFocusAreas}:"No scorecard loaded"},c=`
     Act as a Charismatic Amazon DSP Dispatch Manager. Write a 2-minute "Morning Standup" script to read to the drivers.
     
-    Data Context: ${JSON.stringify(s)}
+    Data Context: ${JSON.stringify(l)}
     
     Structure:
     1. **Hook**: Energy, welcome back.
-    2. **Yesterday's Wins**: Shout out the specific top helpers from yesterday (if any). Mention how many rescues we did.
+    2. **Yesterday's Wins**: Shout out the specific top helpers from yesterday (if any). Mention the *actual* number of rescues performed (${s}).
     3. **Scorecard Focus**: If scorecard data exists, mention the "Tier" and the #1 Focus Area. Explain why it matters.
     4. **Today's Mission**: General encouragement based on the driver count.
     5. **Safety Sign-off**: End with a safety catchphrase (e.g., "Buckle up, slow down").
     
     Tone: Motivational, direct, authoritative but friendly.
-    `;try{return(await i.models.generateContent({model:a,contents:o})).text||"Could not generate script."}catch(l){return console.error("Standup Gen Error:",l),"Error generating script."}},o5e=async(t,e,r)=>{if(!t)throw new Error("API Key missing");const n=new XS({apiKey:t}),i="gemini-2.5-flash",a={current_status:r.currentDrivers?r.currentDrivers.map(o=>({name:o.name,route:o.routeId,status:o.diff>0?"Behind":"Ahead",stops_diff:o.diff,pace:o.pace,battery:o.batteryLevel})):"No live route data",scorecard:r.scorecard?{tier:r.scorecard.overallTier,focus:r.scorecard.keyFocusAreas,drivers:r.scorecard.drivers.map(o=>({name:o.name,fico:o.fico,speeding:o.speedingEventRate,dcr:o.dcr}))}:"No scorecard data",history_summary:r.history?`Contains ${r.history.length} days of records.`:"No history"},s=`
+    `;try{return(await i.models.generateContent({model:a,contents:c})).text||"Could not generate script."}catch(u){return console.error("Standup Gen Error:",u),"Error generating script."}},o5e=async(t,e,r)=>{if(!t)throw new Error("API Key missing");const n=new XS({apiKey:t}),i="gemini-2.5-flash",a={current_status:r.currentDrivers?r.currentDrivers.map(o=>({name:o.name,route:o.routeId,status:o.diff>0?"Behind":"Ahead",stops_diff:o.diff,pace:o.pace,battery:o.batteryLevel})):"No live route data",scorecard:r.scorecard?{tier:r.scorecard.overallTier,focus:r.scorecard.keyFocusAreas,drivers:r.scorecard.drivers.map(o=>({name:o.name,fico:o.fico,speeding:o.speedingEventRate,dcr:o.dcr}))}:"No scorecard data",history_summary:r.history?`Contains ${r.history.length} days of records.`:"No history"},s=`
     You are "Dispatch Bot", an intelligent assistant for an Amazon DSP owner.
     User Query: "${e}"
     
